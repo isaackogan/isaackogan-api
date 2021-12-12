@@ -1,0 +1,3 @@
+psutil
+aiohttp
+pypresence~=4.2.1

@@ -1,0 +1,4 @@
+uvicorn
+aiohttp
+fastapi_simple_security
+git+https://github.com/long2ice/fastapi-limiter.git
