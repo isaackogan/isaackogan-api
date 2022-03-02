@@ -4,6 +4,8 @@ import logging
 import os
 import traceback
 from asyncio import AbstractEventLoop
+from typing import Optional
+
 from starlette.responses import StreamingResponse
 
 import aiohttp
@@ -70,7 +72,8 @@ async def update_quote(key: str):
     return status.delete_json_value(config.QUOTES_PATH, key)
 
 
-@app.get("/discord/rpc/buttons", tags=['Discord RPC (Buttons)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
+@app.get("/discord/rpc/buttons", tags=['Discord RPC (Buttons)'],
+         dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_button_list():
     return status.get_json_resource(config.BUTTONS_PATH)
 
@@ -95,12 +98,14 @@ async def delete_button(key: str):
     return status.delete_json_value(config.BUTTONS_PATH, key)
 
 
-@app.get("/discord/rpc/images", tags=['Discord RPC (General)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
+@app.get("/discord/rpc/images", tags=['Discord RPC (General)'],
+         dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_image_list():
     return status.get_json_resource(config.IMAGES_PATH)
 
 
-@app.get("/discord/rpc/client_id", tags=['Discord RPC (General)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
+@app.get("/discord/rpc/client_id", tags=['Discord RPC (General)'],
+         dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_client_id():
     return config.IPC_APPLICATION_ID
 
@@ -109,19 +114,18 @@ async def get_client_id():
 async def discord_image_proxy(url: str):
     split: str = urlsplit(url).hostname
 
-    if not any(word in split for word in ["discord.com", "discordapp.com"]):
+    # Validity of the image
+    if split is None or not any(word in split for word in ["discord.com", "discordapp.com"]):
         return
 
-    # Get the image
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+    buffer: Optional[io.BytesIO] = None
 
-            # Load to buffer
-            buffer: io.BytesIO = io.BytesIO(await response.read())
-            buffer.seek(0)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                buffer = io.BytesIO(await response.read())
+                buffer.seek(0)
+    except:
+        pass
 
-            # Stream back
-            return StreamingResponse(buffer, media_type="image/png")
-
-
-
+    return StreamingResponse(buffer, media_type="image/png")
