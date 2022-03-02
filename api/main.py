@@ -1,15 +1,18 @@
 import asyncio
+import io
 import logging
 import os
 import traceback
 from asyncio import AbstractEventLoop
+from starlette.responses import StreamingResponse
 
+import aiohttp
 import aioredis
 from fastapi import FastAPI, Depends
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
-
+from urllib.parse import urlsplit
 import config
 from modules import status
 
@@ -100,3 +103,25 @@ async def get_image_list():
 @app.get("/discord/rpc/client_id", tags=['Discord RPC (General)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_client_id():
     return config.IPC_APPLICATION_ID
+
+
+@app.get("/discord/proxy", tags=['Discord Proxy Service'], dependencies=[Depends(RateLimiter(times=3, seconds=2))])
+async def discord_image_proxy(url: str):
+    split: str = urlsplit(url).hostname
+
+    if not any(word in split for word in ["discord.com", "discordapp.com"]):
+        return
+
+    # Get the image
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+
+            # Load to buffer
+            buffer: io.BytesIO = io.BytesIO(await response.read())
+            buffer.seek(0)
+
+            # Stream back
+            return StreamingResponse(buffer, media_type="image/png")
+
+
+
