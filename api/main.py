@@ -98,14 +98,12 @@ async def delete_button(key: str):
     return status.delete_json_value(config.BUTTONS_PATH, key)
 
 
-@app.get("/discord/rpc/images", tags=['Discord RPC (General)'],
-         dependencies=[Depends(RateLimiter(times=1, seconds=10))])
+@app.get("/discord/rpc/images", tags=['Discord RPC (General)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_image_list():
     return status.get_json_resource(config.IMAGES_PATH)
 
 
-@app.get("/discord/rpc/client_id", tags=['Discord RPC (General)'],
-         dependencies=[Depends(RateLimiter(times=1, seconds=10))])
+@app.get("/discord/rpc/client_id", tags=['Discord RPC (General)'], dependencies=[Depends(RateLimiter(times=1, seconds=10))])
 async def get_client_id():
     return config.IPC_APPLICATION_ID
 

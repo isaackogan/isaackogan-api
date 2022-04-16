@@ -42,8 +42,7 @@ class StatusOptions:
 
     @property
     def state(self):
-        # 1650427200
-        time: int = int(1650127710 - datetime.now(timezone.utc).timestamp())
+        time: int = int(1650427200 - datetime.now(timezone.utc).timestamp())
         positive: bool = time >= 0
         time: int = abs(time)
 
