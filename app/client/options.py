@@ -1,5 +1,4 @@
 import random
-from datetime import datetime, timezone
 
 import aiohttp
 import psutil
@@ -42,18 +41,7 @@ class StatusOptions:
 
     @property
     def state(self):
-        time: int = int(1650427200 - datetime.now(timezone.utc).timestamp())
-        positive: bool = time >= 0
-        time: int = abs(time)
-
-        hour = time // 3600
-        time %= 3600
-        minutes = time // 60
-        time %= 60
-        seconds = time
-
-        # return f"RAM: {str(round(psutil.virtual_memory().percent, 1))}% CPU: {round(psutil.cpu_percent(), 1)}%"
-        return f"Timer: {hour}h {minutes}m {seconds}s {'' if positive else 'ago'}"
+        return f"RAM: {str(round(psutil.virtual_memory().percent, 1))}% CPU: {round(psutil.cpu_percent(), 1)}%"
 
     @staticmethod
     def __sanitize_request_options(data: dict) -> list:
